@@ -1,7 +1,6 @@
 ﻿$(document).ready(function () {
     $("#btn_name0").click(function () {
         var NumIID = $(this).attr('data-id');
-        console.log(NumIID);
         Generate_QR_Code(NumIID);
     });
 
@@ -14,11 +13,12 @@ function Generate_QR_Code(NumIID) {
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         success: function (data) {
-            console.log(data);
             document.getElementById('MainImage').src = data;
+            $("#btn_name0").prop('disabled', false);
         },
         beforeSend: function () {
             document.getElementById('MainImage').src = "/files/server_load.gif";
+            $("#btn_name0").prop('disabled', true);
         },
         error: function (result) {
             console.log(result);

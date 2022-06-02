@@ -2,12 +2,18 @@
 using QR_Generator.Models;
 using System.Diagnostics;
 using QRCoder;
-using QRCoder.Extensions;
-using QRCoder.Exceptions;
-using System.Drawing;
-using System.IO;
-using System.Drawing.Imaging;
 
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using QRCoder;
+using System.Drawing.Imaging;
+using System.IO;
 
 
 
@@ -26,7 +32,7 @@ namespace QR_Generator.Controllers
         public IActionResult Index()
         {
             var vm = new ImageData();
-            vm.data = new byte[1024];
+            vm.data = new byte[10];
 
             return View(vm);
         }
@@ -45,7 +51,7 @@ namespace QR_Generator.Controllers
 
 
         [HttpPost]
-        public IActionResult Create(ImageData model)
+        public IActionResult Create1(ImageData model)
         {
             //  check model.EmployeeId 
             //  to do : Save and redirect
@@ -62,6 +68,47 @@ namespace QR_Generator.Controllers
             return View("Index", vm);
         }
 
+        public IActionResult Create(ImageData model)
+        {
+            string Name = "Start of copying";
+            Name = Name + "!";
+            string ReturnSRC = String.Empty;
+            ImageData ImgData = new ImageData();
+
+
+
+            Uri generator = new Uri("http://nord-tranzit.ru");
+            string payload = generator.ToString();
+
+            try
+            {
+                QRCodeGenerator qrGenerator = new QRCodeGenerator();
+                //QRCodeData qrCodeData = qrGenerator.CreateQrCode("The text which should be encoded.", QRCodeGenerator.ECCLevel.Q);
+                //QRCodeData qrCodeData = qrGenerator.CreateQrCode(payload, QRCodeGenerator.ECCLevel.Q);
+                QRCodeData qrCodeData = qrGenerator.CreateQrCode("http://nord-tranzit.ru", QRCodeGenerator.ECCLevel.Q);
+
+
+                BitmapByteQRCode qrCode = new BitmapByteQRCode(qrCodeData);
+                byte[] qrCodeAsBitmapByteArr = null;
+                //byte[] qrCodeAsBitmapByteArr = qrCode.GetGraphic(20);
+                ImgData.data = qrCode.GetGraphic(20);
+
+                //ReturnSRC = $"data:image/jpeg;base64,{Convert.ToBase64String(qrCodeAsBitmapByteArr)}";
+                ReturnSRC = $"data:image/jpeg;base64,{Convert.ToBase64String(ImgData.data)}";
+                //ReturnSRC = $"--";
+
+                qrGenerator.Dispose();
+                qrCodeData.Dispose();
+                qrCode.Dispose();
+            }
+            finally
+            {
+                //ImgData
+            }
+
+            return View("Index", ImgData);
+        }
+
 
 
         [HttpPost]
@@ -69,25 +116,38 @@ namespace QR_Generator.Controllers
         {
             string Name = "Start of copying";
             Name = Name + "!";
+            string ReturnSRC = String.Empty;
+            ImageData ImgData = new ImageData();
 
-            Uri generator = new Uri("http://nord-tranzit.ru");
-            string payload = generator.ToString();
+            try
+            {
+                using (QRCodeGenerator qrGenerator = new QRCodeGenerator())
+                {
+                    using (QRCodeData qrCodeData = qrGenerator.CreateQrCode("http://www.nord-build.ru", QRCodeGenerator.ECCLevel.Q))
+                    {
+                        using (BitmapByteQRCode qrCode = new BitmapByteQRCode(qrCodeData))
+                        {
+                            byte[] qrCodeAsBitmapByteArr = null;
+                            //byte[] qrCodeAsBitmapByteArr = qrCode.GetGraphic(20);
+                            ImgData.data = qrCode.GetGraphic(20);
+                            //var qrCodeAsBitmap = qrCode.GetGraphic(20);
 
-            QRCodeGenerator qrGenerator = new QRCodeGenerator();
-            //QRCodeData qrCodeData = qrGenerator.CreateQrCode("The text which should be encoded.", QRCodeGenerator.ECCLevel.Q);
-            //QRCodeData qrCodeData = qrGenerator.CreateQrCode(payload, QRCodeGenerator.ECCLevel.Q);
-            QRCodeData qrCodeData = qrGenerator.CreateQrCode("http://nord-tranzit.ru", QRCodeGenerator.ECCLevel.Q);
 
-
-            BitmapByteQRCode qrCode = new BitmapByteQRCode(qrCodeData);
-            //byte[] qrCodeAsBitmapByteArr = qrCode.GetGraphic(20);
-            byte[] qrCodeAsBitmapByteArr = qrCode.GetGraphic(20);
-
-            string ReturnSRC = $"data:image/jpeg;base64,{Convert.ToBase64String(qrCodeAsBitmapByteArr)}";
+                            //ReturnSRC = $"data:image/jpeg;base64,{Convert.ToBase64String(qrCodeAsBitmapByteArr)}";
+                            ReturnSRC = $"data:image/jpeg;base64,{Convert.ToBase64String(ImgData.data)}";
+                            //ReturnSRC = $"--";
+                        }
+                    }
+                }
+            }
+            finally {
+                //ImgData
+                
+            }
+           
 
             return Json(ReturnSRC);
         }
-
 
 
     }
